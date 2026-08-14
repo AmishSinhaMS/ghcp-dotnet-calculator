@@ -22,7 +22,7 @@ participants a realistic but approachable codebase for practicing GitHub Flow,
 debugging, refactoring, unit testing, documentation, GitHub Actions concepts, and
 custom Copilot prompt and skill authoring.
 
-![GitHub Enterprise Cloud AI Credits Tracking by Cost Center](https://github.com/user-attachments/assets/b77a849d-3b74-4698-8efe-0080ae0f03cb)
+![ghcp-dotnet-calculator project infographic](docs/images/ghcp-dotnet-calculator-infographic.png)
 
 ```mermaid
 flowchart TB
