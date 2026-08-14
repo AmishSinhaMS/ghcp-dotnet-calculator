@@ -3,6 +3,8 @@ title: ghcp-dotnet-calculator
 description: GitHub Copilot learning workspace for a .NET 10 console calculator with xUnit, CSV, and Testcontainers PostgreSQL tests
 ---
 
+# ghcp-dotnet-calculator
+
 ## Overview
 
 GitHub Copilot learning workspace for a small .NET 10 calculator lab.
