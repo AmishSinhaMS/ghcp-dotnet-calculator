@@ -4,6 +4,7 @@ bool continueCalculating = true;
 
 while (continueCalculating)
 {
+	ClearScreen();
 	Console.WriteLine("Basic Calculator");
 	Console.WriteLine("Supported operators: +, -, *, /, %, ^");
 	Console.WriteLine();
@@ -84,5 +85,17 @@ static bool AskToContinue()
 		}
 
 		Console.WriteLine("Enter y to continue or n to exit.");
+	}
+}
+
+static void ClearScreen()
+{
+	try
+	{
+		Console.Clear();
+	}
+	catch (IOException)
+	{
+		Console.WriteLine();
 	}
 }
