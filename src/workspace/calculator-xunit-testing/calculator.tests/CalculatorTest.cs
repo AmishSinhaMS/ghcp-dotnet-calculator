@@ -1,13 +1,14 @@
 ﻿using calculator;
+using System.Globalization;
 
 namespace calculator.tests;
 
 public class CalculatorTest
 {
+    private static readonly string TestDataPath = Path.Combine(AppContext.BaseDirectory, "TestCases.csv");
+
     [Theory]
-    [InlineData(2, 3, 5)]
-    [InlineData(-2, 3, 1)]
-    [InlineData(0, 0, 0)]
+    [MemberData(nameof(GetAddTestCases))]
     public void Add_ValidOperands_ReturnsSum(double firstOperand, double secondOperand, double expected)
     {
         double result = CalculatorOperations.Add(firstOperand, secondOperand);
@@ -16,9 +17,7 @@ public class CalculatorTest
     }
 
     [Theory]
-    [InlineData(7, 3, 4)]
-    [InlineData(-2, -3, 1)]
-    [InlineData(0, 5, -5)]
+    [MemberData(nameof(GetSubtractTestCases))]
     public void Subtract_ValidOperands_ReturnsDifference(double firstOperand, double secondOperand, double expected)
     {
         double result = CalculatorOperations.Subtract(firstOperand, secondOperand);
@@ -27,9 +26,7 @@ public class CalculatorTest
     }
 
     [Theory]
-    [InlineData(4, 3, 12)]
-    [InlineData(-4, 3, -12)]
-    [InlineData(4, 0, 0)]
+    [MemberData(nameof(GetMultiplyTestCases))]
     public void Multiply_ValidOperands_ReturnsProduct(double firstOperand, double secondOperand, double expected)
     {
         double result = CalculatorOperations.Multiply(firstOperand, secondOperand);
@@ -38,9 +35,7 @@ public class CalculatorTest
     }
 
     [Theory]
-    [InlineData(12, 3, 4)]
-    [InlineData(7, 2, 3.5)]
-    [InlineData(-12, 3, -4)]
+    [MemberData(nameof(GetDivideTestCases))]
     public void Divide_NonZeroDivisor_ReturnsQuotient(double firstOperand, double secondOperand, double expected)
     {
         double result = CalculatorOperations.Divide(firstOperand, secondOperand);
@@ -55,9 +50,7 @@ public class CalculatorTest
     }
 
     [Theory]
-    [InlineData(10, 3, 1)]
-    [InlineData(12, 4, 0)]
-    [InlineData(-10, 3, -1)]
+    [MemberData(nameof(GetModuloTestCases))]
     public void Modulo_NonZeroDivisor_ReturnsRemainder(double firstOperand, double secondOperand, double expected)
     {
         double result = CalculatorOperations.Modulo(firstOperand, secondOperand);
@@ -72,9 +65,7 @@ public class CalculatorTest
     }
 
     [Theory]
-    [InlineData(2, 3, 8)]
-    [InlineData(5, 0, 1)]
-    [InlineData(9, 0.5, 3)]
+    [MemberData(nameof(GetExponentTestCases))]
     public void Exponent_ValidOperands_ReturnsPower(double firstOperand, double secondOperand, double expected)
     {
         double result = CalculatorOperations.Exponent(firstOperand, secondOperand);
@@ -83,12 +74,7 @@ public class CalculatorTest
     }
 
     [Theory]
-    [InlineData(2, 3, "+", 5)]
-    [InlineData(7, 4, "-", 3)]
-    [InlineData(3, 5, "*", 15)]
-    [InlineData(8, 2, "/", 4)]
-    [InlineData(8, 3, "%", 2)]
-    [InlineData(3, 2, "^", 9)]
+    [MemberData(nameof(GetCalculateTestCases))]
     public void Calculate_SupportedOperator_ReturnsExpectedResult(
         double firstOperand,
         double secondOperand,
@@ -106,25 +92,106 @@ public class CalculatorTest
         Assert.Throws<ArgumentException>(() => CalculatorOperations.Calculate(1, 2, "?"));
     }
 
-    [Theory]
-    [InlineData("+")]
-    [InlineData("-")]
-    [InlineData("*")]
-    [InlineData("/")]
-    [InlineData("%")]
-    [InlineData("^")]
-    public void IsSupportedOperator_KnownOperator_ReturnsTrue(string operatorSymbol)
+    [Fact]
+    public void IsSupportedOperator_KnownOperators_ReturnTrue()
     {
-        Assert.True(CalculatorOperations.IsSupportedOperator(operatorSymbol));
+        string[] supportedOperators = ["+", "-", "*", "/", "%", "^"];
+
+        foreach (string operatorSymbol in supportedOperators)
+        {
+            Assert.True(CalculatorOperations.IsSupportedOperator(operatorSymbol));
+        }
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData(" ")]
-    [InlineData("?")]
-    public void IsSupportedOperator_UnknownOperator_ReturnsFalse(string? operatorSymbol)
+    [Fact]
+    public void IsSupportedOperator_UnknownOperators_ReturnFalse()
     {
-        Assert.False(CalculatorOperations.IsSupportedOperator(operatorSymbol));
+        string?[] unsupportedOperators = [null, string.Empty, " ", "?"];
+
+        foreach (string? operatorSymbol in unsupportedOperators)
+        {
+            Assert.False(CalculatorOperations.IsSupportedOperator(operatorSymbol));
+        }
+    }
+
+    public static IEnumerable<object[]> GetAddTestCases() => GetOperationTestCases("Add");
+
+    public static IEnumerable<object[]> GetSubtractTestCases() => GetOperationTestCases("Subtract");
+
+    public static IEnumerable<object[]> GetMultiplyTestCases() => GetOperationTestCases("Multiply");
+
+    public static IEnumerable<object[]> GetDivideTestCases() => GetOperationTestCases("Divide");
+
+    public static IEnumerable<object[]> GetModuloTestCases() => GetOperationTestCases("Modulo");
+
+    public static IEnumerable<object[]> GetExponentTestCases() => GetOperationTestCases("Exponent");
+
+    public static IEnumerable<object[]> GetCalculateTestCases() => ReadTestCases()
+        .Select(testCase => new object[]
+        {
+            testCase.Operand1,
+            testCase.Operand2,
+            GetOperatorSymbol(testCase.Operation),
+            testCase.ExpectedResult
+        })
+        .ToList();
+
+    private static IEnumerable<object[]> GetOperationTestCases(string operation) => ReadTestCases()
+        .Where(testCase => testCase.Operation == operation)
+        .Select(testCase => new object[] { testCase.Operand1, testCase.Operand2, testCase.ExpectedResult })
+        .ToList();
+
+    private static IEnumerable<TestCase> ReadTestCases()
+    {
+        if (!File.Exists(TestDataPath))
+        {
+            throw new FileNotFoundException($"Test data file not found: {TestDataPath}");
+        }
+
+        return File.ReadLines(TestDataPath)
+            .Skip(1)
+            .Where(line => !string.IsNullOrWhiteSpace(line))
+            .Select(ParseTestCase)
+            .ToList();
+    }
+
+    private static TestCase ParseTestCase(string line)
+    {
+        string[] values = line.Split(',');
+
+        if (values.Length != 4)
+        {
+            throw new FormatException($"Invalid test case row: {line}");
+        }
+
+        return new TestCase
+        {
+            Operand1 = double.Parse(values[0], CultureInfo.InvariantCulture),
+            Operand2 = double.Parse(values[1], CultureInfo.InvariantCulture),
+            Operation = values[2],
+            ExpectedResult = double.Parse(values[3], CultureInfo.InvariantCulture)
+        };
+    }
+
+    private static string GetOperatorSymbol(string operation) => operation switch
+    {
+        "Add" => "+",
+        "Subtract" => "-",
+        "Multiply" => "*",
+        "Divide" => "/",
+        "Modulo" => "%",
+        "Exponent" => "^",
+        _ => throw new ArgumentException($"Unsupported operation '{operation}'.", nameof(operation))
+    };
+
+    private sealed class TestCase
+    {
+        public double Operand1 { get; init; }
+
+        public double Operand2 { get; init; }
+
+        public string Operation { get; init; } = string.Empty;
+
+        public double ExpectedResult { get; init; }
     }
 }
